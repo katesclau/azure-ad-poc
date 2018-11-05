@@ -1,0 +1,7 @@
+{
+  "ignore": "static/bundle.js",
+  "watch": ["./**/*.js"],
+  "execMap": {
+    "js": "babel-node"
+  }
+}

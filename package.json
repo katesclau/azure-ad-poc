@@ -1,0 +1,30 @@
+{
+  "name": "azure-ad-poc",
+  "license": "MIT",
+  "main": "server.js",
+  "scripts": {
+    "start": "nodemon --inspect server.js"
+  },
+  "dependencies": {
+    "@babel/core": "^7.1.2",
+    "@babel/preset-env": "^7.1.0",
+    "@babel/preset-react": "^7.0.0",
+    "@babel/preset-stage-2": "^7.0.0",
+    "babel-loader": "^8.0.4",
+    "dotenv": "^6.1.0",
+    "dotenv-webpack": "^1.5.7",
+    "express": "^4.12.3",
+    "graphql-yoga": "^1.16.7",
+    "morgan": "^1.5.2",
+    "msal": "^0.2.3",
+    "path": "^0.11.14",
+    "react": "^16.6.0",
+    "react-dom": "^16.6.0",
+    "source-map-loader": "^0.2.4",
+    "webpack": "^4.24.0"
+  },
+  "devDependencies": {
+    "@babel/node": "^7.0.0",
+    "nodemon": "^1.18.5"
+  }
+}
