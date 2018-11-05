@@ -5,6 +5,9 @@
 
 This is a sample repository on how to SSO with Azure AD and get the ID Token for a given user... you'll need that ID Token to communicate with any API provided in the APP configuration registry. You can also use it as main source of user access control for any application.
 
+This is the usual flow...
+![./images/javascriptspa-intro.png](./images/javascriptspa-intro.png)
+
 ## Configuration
 
 Copy `.sample.env` to `.env`
