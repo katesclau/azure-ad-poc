@@ -1,31 +1,11 @@
-import React, {Component} from 'react'
+import React from 'react'
 import ReactDOM from 'react-dom'
-import { signIn, signOut } from '../common/azureHelper'
-import { IdToken } from 'msal/lib-commonjs/IdToken';
+import LoginFlow from './LoginFlow';
 
-class LoginFlow extends Component {
-    constructor(props){
-        super(props)
+function App() {
+    return (
+        <LoginFlow />
+    );
+  }
 
-        this.handleSignIn = this.handleSignIn.bind(this);
-        this.handleSignOut = this.handleSignOut.bind(this);
-    }
-    handleSignIn() {
-        signIn().then(IdToken => {
-            console.log(IdToken);
-        });
-    }
-    handleSignOut() {
-        signOut();
-    }
-    render() {
-        return (
-            <div>
-                <button onClick={this.handleSignIn}>Sign In</button>
-                <button onClick={this.handleSignOut}>Sign Out</button>
-            </div>
-        )
-    }
-}
-
-ReactDOM.render(<LoginFlow />, document.getElementById('app'))
+ReactDOM.render(<App />, document.getElementById('app'))

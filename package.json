@@ -10,21 +10,34 @@
     "@babel/preset-env": "^7.1.0",
     "@babel/preset-react": "^7.0.0",
     "@babel/preset-stage-2": "^7.0.0",
+    "axios": "^0.18.0",
     "babel-loader": "^8.0.4",
+    "body-parser": "^1.18.3",
+    "cookie-parser": "^1.4.3",
     "dotenv": "^6.1.0",
     "dotenv-webpack": "^1.5.7",
     "express": "^4.12.3",
+    "express-session": "^1.15.6",
+    "graphql": "^14.0.2",
     "graphql-yoga": "^1.16.7",
+    "jsonwebtoken": "^8.3.0",
+    "method-override": "^3.0.0",
     "morgan": "^1.5.2",
     "msal": "^0.2.3",
+    "passport": "^0.4.0",
+    "passport-azure-ad": "^4.0.0",
     "path": "^0.11.14",
+    "prop-types": "^15.6.2",
     "react": "^16.6.0",
+    "react-cookie": "^3.0.4",
     "react-dom": "^16.6.0",
     "source-map-loader": "^0.2.4",
     "webpack": "^4.24.0"
   },
   "devDependencies": {
     "@babel/node": "^7.0.0",
-    "nodemon": "^1.18.5"
+    "eslint": "^5.8.0",
+    "nodemon": "^1.18.5",
+    "prettier": "^1.14.3"
   }
 }
