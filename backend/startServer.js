@@ -2,71 +2,76 @@ import { GraphQLServer } from "graphql-yoga"
 import morgan from "morgan"
 import path from "path"
 import express from "express"
-import passport from 'passport'
-import configureOIDC from "../common/OIDCHelper"
-import methodOverride from "method-override"
 import cookieParser from 'cookie-parser'
-import session from 'express-session'
+import session from 'express-session';
 import bodyParser from "body-parser"
+import methodOverride from 'method-override'
+import passport from 'passport'
 
+import config from '../config'
+import { configureOIDC, authenticate, ensureAuthenticated } from "../common/OIDCHelper"
 
 passport.use(configureOIDC());
 
 export function startServer() {
+  
+  // TypeDefs
   const typeDefs = `
     type Query {
-      login(name: String, password: String): String!
-      signup(name: String, password: String, email: String): String!
+      me: String!
     }
   `;
+
+  // Resolvers
   const resolvers = {
     Query: {
-      login: (_, { name, password }) => `Hello ${name || "World"}`,
-      signup: (_, { name, password, email }) => `Hello ${name || "World"}`
+      me: (parent, args, ctx, info ) => {
+        console.log("Get me...")
+        console.log(ctx.user.displayName)
+        return ctx.user.displayName
+      },
     }
   };
+  
+  // Initialize GraphQLServer via graphql-yoga
   const server = new GraphQLServer({
     typeDefs,
     resolvers,
-    context: req => ({
-      ...req
-    })
+    context: ctx => {
+      const { user } = ctx.request;
+      return { user }
+    }
   });
+  
   const options = {
     port: process.env.PORT || 3000,
     endpoint: "/graphql",
     subscriptions: "/subscriptions",
     playground: "/playground"
-  };
+  }
+
+  // Configure morgan module to log all requests.
+  server.express.use(morgan("combined"))
+  server.express.use(methodOverride())
 
   // You can also use cookies to store access- just update the variables used on OIDCHelper.js on config.js
-  server.express.use(methodOverride());
-  server.express.use(cookieParser());
-  
-  server.express.use(session({ 
-    secret: 'keyboard cat', 
-    resave: true, 
-    saveUninitialized: false, 
-    cookie: { 
-      secure: true 
-    }
-  }));
+  server.express.use(cookieParser())
+  server.express.use(session({
+    secret: process.env.SECRET,
+    cookie: {maxAge: config.mongoDBSessionMaxAge * 1000},
+    resave: true,
+    saveUninitialized: true
+  }))
+  server.express.use(bodyParser.urlencoded({ extended : true }))
 
-  server.express.use(bodyParser.urlencoded({ extended : true }));
   
-  // Configure morgan module to log all requests.
-  server.express.use(morgan("combined"));
-  // Set the front-end folder to serve public assets.
-  server.express.use(express.static("static"));
-  // Set up our one route to the index.html file.
-  server.express.get("/", function (req, res) {
-    res.sendFile(path.join(__dirname + "/static/index.html"));
-  });
-
   // Initialize Passport!  Also use passport.session() middleware, to support
   // persistent login sessions (recommended).
-  server.express.use(passport.initialize());
-  server.express.use(passport.session());
+  server.express.use(passport.initialize())
+  server.express.use(passport.session())
+
+  // Set the front-end folder to serve public assets.
+  server.express.use(express.static(path.join(__dirname + "/../static")))
 
   //-----------------------------------------------------------------------------
   // Set up the route controller
@@ -78,44 +83,33 @@ export function startServer() {
   // 2. For the routes you want to check if user is already logged in, use 
   // `ensureAuthenticated`. It checks if there is an user stored in session, if not
   // it will call `passport.authenticate` to ask for user to log in.
-  //-----------------------------------------------------------------------------server.express.get('/login', (req, res, next) => {
-  server.express.get('/login', (req, res, next) => {
-    passport.authenticate('azuread-openidconnect', { 
-      response: res,                      // required
-      failureRedirect: '/' 
-    })(req, res, next)}, (req, res) => {
-      console.log('Login was called in the Sample');
-      console.log(req);
-      res.redirect('/');
+  //-----------------------------------------------------------------------------
+  server.express.get('/login', authenticate, (req, res) => {
+    console.log('Login was called in the Sample');
+    res.redirect('/me');
   });
   
   // 'GET returnURL'
   // `passport.authenticate` will try to authenticate the content returned in
   // query (such as authorization code). If authentication fails, user will be
   // redirected to '/' (home page); otherwise, it passes to the next middleware.
-  server.express.get('/auth/openid/return', (req, res, next) => {
-    passport.authenticate('azuread-openidconnect', { 
-      response: res,                      // required
-      failureRedirect: '/'  
-    })(req, res, next)}, (req, res) => {
-      console.log('We received a return from AzureAD.');
-      console.log(req);
-      res.redirect('/');
+  server.express.get('/auth/openid/return', authenticate, (req, res) => {
+    console.log('GET: We received a return from AzureAD.');
+    req.session.save(() => res.redirect('/me'))
   });
-
+  
   // 'POST returnURL'
   // `passport.authenticate` will try to authenticate the content returned in
   // body (such as authorization code). If authentication fails, user will be
   // redirected to '/' (home page); otherwise, it passes to the next middleware.
-  server.express.post('/auth/openid/return', (req, res, next) => {
-    passport.authenticate('azuread-openidconnect', { 
-      response: res,                      // required
-      failureRedirect: '/'  
-    })(req, res, next);
-  }, (req, res) => {
-    console.log('We received a return from AzureAD.')
-    console.log(req.user.displayName)
-    res.redirect('/')
+  server.express.post('/auth/openid/return', authenticate, (req, res) => {
+    console.log('POST: We received a return from AzureAD.');
+    req.session.save(() => {
+      req.session.reload(() => {
+        console.log(req.session)
+      })
+      res.redirect('/me')
+    })
   });
 
   // 'logout' route, logout from passport, and destroy the session with AAD.
@@ -126,6 +120,20 @@ export function startServer() {
     });
   });
 
+  // Set up our one route to the index.html file.
+  server.express.get("/*", function (req, res) {
+    res.sendFile(path.join(__dirname + "/../static/index.html"));
+  });
+
+  // Set up our one route to the index.html file.
+  server.express.get("/me", ensureAuthenticated, function (req, res) {
+    res.sendFile(path.join(__dirname + "/../static/index.html"));
+  });
+
+  server.express.get("/oops", function (req, res) {
+    res.sendFile(path.join(__dirname + "/../static/index.html"));
+  });
+  
   server.start(options, ({ port }) => {
     console.log(`Server started, listening on port ${port} for incoming requests.`);
   });

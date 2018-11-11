@@ -3,7 +3,7 @@ dotenv.config()
 
 exports.creds = {
     // Required
-    identityMetadata: `https://login.microsoftonline.com/${process.env.tenantID}/.well-known/openid-configuration`, 
+    identityMetadata: `https://login.microsoftonline.com/${process.env.tenantID}/v2.0/.well-known/openid-configuration`, 
     // or equivalently: 'https://login.microsoftonline.com/<tenant_guid>/v2.0/.well-known/openid-configuration'
     //
     // or you can use the common endpoint
@@ -18,7 +18,7 @@ exports.creds = {
     responseType: 'code id_token', 
   
     // Required
-    responseMode: 'query', 
+    responseMode: 'form_post', 
   
     // Required, the reply URL registered in AAD for your app
     redirectUrl: `http://localhost:${process.env.PORT}/auth/openid/return`, 
@@ -44,7 +44,6 @@ exports.creds = {
     // we encrypt state and save it in cookie instead. This option together with { session: false } allows your app
     // to be completely express session free.
     useCookieInsteadOfSession: true,
-    session: false,
   
     // Required if `useCookieInsteadOfSession` is set to true. You can provide multiple set of key/iv pairs for key
     // rollover purpose. We always use the first set of key/iv pair to encrypt cookie, but we will try every set of
@@ -58,7 +57,7 @@ exports.creds = {
     // 'profile' scope is required, the rest scopes are optional.
     // (1) if you want to receive refresh_token, use 'offline_access' scope
     // (2) if you want to get access_token for graph api, use the graph api url like 'https://graph.microsoft.com/mail.read'
-    scope: ['https://graph.microsoft.com/user.read'],
+    scope: ['profile', 'offline_access', 'https://graph.microsoft.com/mail.read'],
   
     // Optional, 'error', 'warn' or 'info'
     loggingLevel: 'info',

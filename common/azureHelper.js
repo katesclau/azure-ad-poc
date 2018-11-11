@@ -8,29 +8,29 @@ var applicationConfig = {
 
 const directory = `https://login.microsoftonline.com/${process.env.tenantID}`
 
-const myMSALObj = new Msal.UserAgentApplication(applicationConfig.clientID, directory, acquireTokenRedirectCallBack,
+const userAgentApplication = new Msal.UserAgentApplication(applicationConfig.clientID, directory, acquireTokenRedirectCallBack,
     {storeAuthStateInCookie: true, cacheLocation: "localStorage"});
 
 // Login popup flow provider
 // Returns IdToken
 const signIn = () => {
-    return myMSALObj.loginPopup(applicationConfig.graphScopes)
+    return userAgentApplication.loginPopup(applicationConfig.graphScopes)
 }
 
 const signOut = () => {
-    myMSALObj.logout()
+    userAgentApplication.logout()
 }
 
 // Sample API call
 const acquireTokenPopupAndCallMSGraph = () => {
     //Call acquireTokenSilent (iframe) to obtain a token for Microsoft Graph
-    myMSALObj.acquireTokenSilent(applicationConfig.graphScopes).then(function (accessToken) {
+    userAgentApplication.acquireTokenSilent(applicationConfig.graphScopes).then(function (accessToken) {
         callMSGraph(applicationConfig.graphEndpoint, accessToken, graphAPICallback);
     }, function (error) {
         console.log(error);
         // Call acquireTokenPopup (popup window) in case of acquireTokenSilent failure due to consent or interaction required ONLY
         if (error.indexOf("consent_required") !== -1 || error.indexOf("interaction_required") !== -1 || error.indexOf("login_required") !== -1) {
-            myMSALObj.acquireTokenPopup(applicationConfig.graphScopes).then(function (accessToken) {
+            userAgentApplication.acquireTokenPopup(applicationConfig.graphScopes).then(function (accessToken) {
                 callMSGraph(applicationConfig.graphEndpoint, accessToken, graphAPICallback);
             }, function (error) {
                 console.log(error);
@@ -57,13 +57,13 @@ const graphAPICallback = (data) => {
 // This function can be removed if you do not need to support IE
 const acquireTokenRedirectAndCallMSGraph = () => {
     //Call acquireTokenSilent (iframe) to obtain a token for Microsoft Graph
-    myMSALObj.acquireTokenSilent(applicationConfig.graphScopes).then(function (accessToken) {
+    userAgentApplication.acquireTokenSilent(applicationConfig.graphScopes).then(function (accessToken) {
       callMSGraph(applicationConfig.graphEndpoint, accessToken, graphAPICallback);
     }, function (error) {
         console.log(error)
         //Call acquireTokenRedirect in case of acquireToken Failure
         if (error.indexOf("consent_required") !== -1 || error.indexOf("interaction_required") !== -1 || error.indexOf("login_required") !== -1) {
-            myMSALObj.acquireTokenRedirect(applicationConfig.graphScopes)
+            userAgentApplication.acquireTokenRedirect(applicationConfig.graphScopes)
         }
     }); 
 }
