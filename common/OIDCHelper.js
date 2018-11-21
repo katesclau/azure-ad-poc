@@ -3,12 +3,7 @@ import { OIDCStrategy } from 'passport-azure-ad'
 import { creds } from '../config'
 import { users, findByOid } from '../backend/users/users'
 
-console.log('OIDC start...')
-console.log(creds)
-
 const ensureAuthenticated = (req, res, next) => {
-  console.log('Assuring authentication.');
-  console.log(req.session);
   if (req.isAuthenticated()) { return next(); }
   res.redirect('/oops');
 };
@@ -17,8 +12,7 @@ const authenticate = (req, res, next) => {
   passport.authenticate('azuread-openidconnect', { 
     response: res,                      // required
     customState: 'my_state',            // optional. Provide a value if you want to provide custom state value.
-    failureRedirect: '/oops',
-    failureFlash: true
+    failureRedirect: '/oops'
   })(req, res, next);
 }
 
@@ -41,7 +35,7 @@ const configureOIDC = () => new OIDCStrategy({
   useCookieInsteadOfSession: creds.useCookieInsteadOfSession,
   cookieEncryptionKeys: creds.cookieEncryptionKeys,
   clockSkew: creds.clockSkew,
-}, (iss, sub, profile, accessToken, refreshToken, done) => {
+}, (iss, sub, profile, accessToken, refreshToken, params, done) => {
   if (!profile.oid) {
     return done(new Error("No oid found"), null);
   }
@@ -52,9 +46,10 @@ const configureOIDC = () => new OIDCStrategy({
         return done(err);
       }
       if (!user) {
+        user = { oid: profile.oid, name: profile.displayName, email: profile.upn, photoURL: "", id_token: params.id_token, access_token: params.access_token, refresh_token: params.refresh_token }
         // "Auto-registration"
-        users.push(profile);
-        return done(null, profile);
+        users.push(user);
+        return done(null, user);
       }
       return done(null, user);
     });

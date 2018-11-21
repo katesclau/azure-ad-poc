@@ -30,7 +30,7 @@ class LoginFlow extends Component {
             url: `http://localhost:${process.env.PORT}/graphql`,
             method: 'post',
             data: {
-              query: `query { me }`
+                query: `query { me { name } }`
             },
             withCredentials: true
           }).then((result) => {

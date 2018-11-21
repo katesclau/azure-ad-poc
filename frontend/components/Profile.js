@@ -1,37 +1,27 @@
 import React from 'react'
-import { Component } from 'react'
-import axios from 'axios'
+import PasswordUpdate from './PasswordUpdate';
+import { Query } from "react-apollo";
+import gql from "graphql-tag";
 
-class Profile extends Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            me: undefined
+const Profile = () => (
+    <Query
+      query={gql`
+        {
+          me {
+            name
+          }
         }
-    }
-    componentDidMount() {
-        axios({
-            url: `http://localhost:${process.env.PORT}/graphql`,
-            method: 'post',
-            data: {
-              query: `query { me }`
-            }
-        }).then( result => {
-            const me = result.data.data.me
-            console.log(me)
-            this.setState({
-                me: me
-            })
-        });
-    }
-    render() {
-        if (this.state.me) {
-            return <p>Hi {this.state.me} 🙋‍ - btw, this data is provided by a secure graphql endpoint! 🔐</p>
-        } else {
-            return <p>Please Login</p>
-        }
-    }
-}
+      `}
+    >
+      {({ loading, error, data }) => {
+        if (loading || error) return <p>Please Login</p>
+  
+        return <div>
+            <p>Hi {data.me.name} 🙋‍ - btw, this data is provided by a secure graphql endpoint, providing data from Azure Graph API! 🔐</p>
+            <PasswordUpdate></PasswordUpdate>
+        </div>
+      }}
+    </Query>
+);
 
 export default Profile

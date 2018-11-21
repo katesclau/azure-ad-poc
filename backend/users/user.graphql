@@ -1,0 +1,20 @@
+type User {
+    name: String!
+    email: String
+    oid: String
+}
+
+input UpdatePasswordInput {
+    currentPassword: String!
+    newPassword: String!
+}
+
+type Query {
+    me: User!
+}
+
+type Mutation {
+    updatePassword(input: UpdatePasswordInput!): User!
+}
+
+

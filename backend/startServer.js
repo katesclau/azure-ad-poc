@@ -1,5 +1,6 @@
 import { GraphQLServer } from "graphql-yoga"
 import morgan from "morgan"
+import cors from 'cors'
 import path from "path"
 import express from "express"
 import cookieParser from 'cookie-parser'
@@ -7,8 +8,10 @@ import session from 'express-session';
 import bodyParser from "body-parser"
 import methodOverride from 'method-override'
 import passport from 'passport'
+import graphQLCombine from 'graphql-combine';
 
 import config from '../config'
+import azureAd from './providers/azureAd'
 import { configureOIDC, authenticate, ensureAuthenticated } from "../common/OIDCHelper"
 
 passport.use(configureOIDC());
@@ -16,22 +19,11 @@ passport.use(configureOIDC());
 export function startServer() {
   
   // TypeDefs
-  const typeDefs = `
-    type Query {
-      me: String!
-    }
-  `;
-
-  // Resolvers
-  const resolvers = {
-    Query: {
-      me: (parent, args, ctx, info ) => {
-        console.log("Get me...")
-        console.log(ctx.user.displayName)
-        return ctx.user.displayName
-      },
-    }
-  };
+  const { typeDefs, resolvers } = graphQLCombine({
+    // TypeDefs glob pattern
+    resolvers: path.join(__dirname, "./", `/*/resolver.js`),
+    typeDefs: path.join(__dirname, "./", '/*/*.graphql'),
+  });
   
   // Initialize GraphQLServer via graphql-yoga
   const server = new GraphQLServer({
@@ -39,7 +31,10 @@ export function startServer() {
     resolvers,
     context: ctx => {
       const { user } = ctx.request;
-      return { user }
+      const dataSources = {
+        azureAd
+      }
+      return { user, dataSources }
     }
   });
   
@@ -50,7 +45,9 @@ export function startServer() {
     playground: "/playground"
   }
 
-  // Configure morgan module to log all requests.
+  server.express.use('*', cors({ origin: `http://localhost:${process.env.PORT}` }));
+  
+  // Configure morgan module to log all requests.  
   server.express.use(morgan("combined"))
   server.express.use(methodOverride())
 
@@ -104,12 +101,7 @@ export function startServer() {
   // redirected to '/' (home page); otherwise, it passes to the next middleware.
   server.express.post('/auth/openid/return', authenticate, (req, res) => {
     console.log('POST: We received a return from AzureAD.');
-    req.session.save(() => {
-      req.session.reload(() => {
-        console.log(req.session)
-      })
-      res.redirect('/me')
-    })
+    res.redirect('/me')
   });
 
   // 'logout' route, logout from passport, and destroy the session with AAD.
@@ -121,7 +113,7 @@ export function startServer() {
   });
 
   // Set up our one route to the index.html file.
-  server.express.get("/*", function (req, res) {
+  server.express.get("/", function (req, res) {
     res.sendFile(path.join(__dirname + "/../static/index.html"));
   });
 
