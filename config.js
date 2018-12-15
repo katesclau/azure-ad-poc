@@ -62,7 +62,7 @@ exports.creds = {
       'offline_access', 
       'https://graph.windows.net/user.read', 
       'https://graph.windows.net/Directory.AccessAsUser.All', 
-      'https://graph.windows.net/Directory.ReadWrite.All' 
+      // 'https://graph.windows.net/Directory.ReadWrite.All' 
     ],
   
     // Optional, 'error', 'warn' or 'info'

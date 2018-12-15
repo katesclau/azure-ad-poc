@@ -101,12 +101,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var msal__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(msal__WEBPACK_IMPORTED_MODULE_0__);
 
 var applicationConfig = {
-  clientID: "d5f93892-a25a-453e-b43a-d710f6b453a5",
+  clientID: "0c4b8a33-0dba-4cc4-a9b8-2ad188d3d2c9",
   //This is your client ID
   graphScopes: ["user.read"],
   graphEndpoint: "https://graph.microsoft.com/v1.0/me"
 };
-var directory = "https://login.microsoftonline.com/".concat("cd7668bb-0c40-4e91-8176-9a0b827261f5");
+var directory = "https://login.microsoftonline.com/".concat("23a3863a-4bd3-44ea-9329-af3ee8bc6153");
 var userAgentApplication = new msal__WEBPACK_IMPORTED_MODULE_0__["UserAgentApplication"](applicationConfig.clientID, directory, acquireTokenRedirectCallBack, {
   storeAuthStateInCookie: true,
   cacheLocation: "localStorage"

@@ -10,12 +10,7 @@ const me = async (_parent, _, { dataSources, user }) => {
 
 const updatePassword = async (_parent, { input }, { dataSources, user }) => {
     const { currentPassword, newPassword } = input
-    const results
-    try {
-        results = await dataSources.azureAd.updatePassword(user, currentPassword, newPassword)
-    } catch (error) {
-        debugger;
-    }
+    const results = await dataSources.azureAd.updatePassword(user, currentPassword, newPassword)
     console.log(results)
     return dataSources.azureAd.getMe(user)
 }
